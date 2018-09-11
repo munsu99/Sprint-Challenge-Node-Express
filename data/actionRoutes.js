@@ -1,53 +1,52 @@
 const express = require('express');
 const router = express.Router();
 
-const projectModel = require('./helpers/projectModel');
+const actionModel = require('./helpers/actionModel');
 
-function upper(req, res, next) {
-    req.body.name = req.body.name.toUpperCase();
-    next();
-}
-  
 router.get('/', (req, res) => {
-    projectModel
+    actionModel
         .get()
-        .then(projects => res.status(200).json(projects))
+        .then(actions => res.status(200).json(actions))
         .catch(err => res.status(500).json({ errMsg: 'Database could not retrieve info' }));
 });
   
 router.get('/:id', (req, res) => {
     const { id } = req.params;
-    projectModel
+    actionModel
         .get(id)
-        .then(projects => {
-            if (projects) {
-                res.status(200).json(projects);
+        .then(actions => {
+            if (actions) {
+                res.status(200).json(actions);
             } else {
-                res.status(404).json({ errMsg: `The project with the id:${id} is not found` });
+                res.status(404).json({ errMsg: `The action with the id:${id} is not found` });
             }
         })
         .catch(err => res.status(500).json({ errMsg: 'Database could not retrieve info' }));
 });
 
-router.post('/', upper, (req, res) => {
-    const { name } = req.body;
+router.post('/', (req, res) => {
+    const { project_id } = req.body;
     const { description } = req.body;
+    const { notes } = req.body;
 
-    if (!name) res.status(400).json({ errMsg: 'Please provide a name' });
+    if (!project_id) res.status(400).json({ errMsg: 'Please provide a project_id' });
+    if (!description) res.status(400).json({ errMsg: 'Please provide a description' });
+    if (!notes) res.status(400).json({ errMsg: 'Please provide a notes' });
 
-    projectModel
-        .insert({ name: name, description: description })
+    actionModel
+        .insert({ project_id: project_id, description: description, notes: notes })
         .then(id => res.status(201).json(id))
         .catch(err => res.status(500).json({ errMsg: 'Database could not retrieve info' }));
 });
 
 router.put('/:id', (req, res) => {
     const { id } = req.params;
-    const { name } = req.body;
+    const { project_id } = req.body;
     const { description } = req.body;
+    const { notes } = req.body;
 
-    projectModel
-        .update(id, { name, description })
+    actionModel
+        .update(id, { project_id, description, notes })
         .then(count => res.status(200).json(count))
         .catch(err => res.status(500).json({ errMsg: 'Database could not retrieve info' }));
 });
@@ -55,7 +54,7 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     const { id } = req.params;
 
-    projectModel
+    actionModel
         .remove(id)
         .then(id => {
         if (id) {
